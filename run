@@ -1,0 +1,127 @@
+#!/bin/sh
+
+PROJECT_DIR="$(cd "$(dirname "$0")" && pwd)"
+
+help() {
+  printf "(no args) - deploy\n"
+  printf "setup-dev\t- setup development environment\n"
+  printf "gen\t- generate project-specific dependencies\n"
+  printf "containers\t- run containers\n"
+  printf "shell\t- run container's shell\n"
+  printf "help\t- show this message\n"
+}
+
+color() {
+    _color="$1"
+    _text="$2"
+
+    case "$_color" in
+        (red)    code="31" ;;
+        (green)  code="32" ;;
+        (yellow) code="33" ;;
+        (blue)   code="34" ;;
+        (purple) code="35" ;;
+        (cyan)   code="36" ;;
+        (white)  code="37" ;;
+        (black)  code="30" ;;
+        (bold)   code="1"  ;;
+        (reset)  code="0"  ;;
+        (*)      code="0"  ;;
+    esac
+    printf "\033[%sm%s\033[0m" "$code" "$_text"
+}
+
+pick_option() {
+    prompt="$1"
+    shift 
+    printf '%s\n' "$prompt" >&2
+    
+    i=1
+    for opt in "$@"; do
+        printf "%d) %s\n" "$i" "$opt" >&2
+        i=$((i + 1))
+    done
+    
+    count=$((i - 1))
+
+    while true; do
+        printf "Enter choice [1-%d]: " "$count" >&2
+        read -r choice
+
+        case "$choice" in
+            (''|*[!0-9]*) 
+                echo "Invalid input. Please enter a number." >&2 
+                continue 
+                ;;
+        esac
+
+        if [ "$choice" -ge 1 ] && [ "$choice" -le "$count" ]; then
+            j=1
+            for opt in "$@"; do
+                if [ "$j" -eq "$choice" ]; then
+                    echo "$opt"
+                    return 0
+                fi
+                j=$((j + 1))
+            done
+        else
+            echo "Invalid choice. Try again." >&2
+        fi
+    done
+}
+
+setup_dev() {
+  echo $(color "yellow" "Setting up dependencies for the development environment...")
+
+  if ! command -v nix >/dev/null 2>&1; then
+    printf "Error: nix is not installed or not in PATH\n"
+    exit 1
+  fi
+  
+  option_one="Add to nix-profile" 
+  option_two="Run 'nix develop'"
+  choice=$(pick_option "Pick the setup option:" "$option_one" "$option_two")
+
+  if [ "$choice" = "$option_one" ]; then
+    nix profile add path:$PROJECT_DIR/dependencies
+    echo $(color "green" "Dependencies are set in nix-profile")
+    exit 0
+  elif [ "$choice" = "$option_two" ]; then
+    nix develop path:$PROJECT_DIR/dependencies
+  fi
+}
+
+gen() {
+  echo $(color "yellow" "Generating project-specific dependencies...")
+
+  if ! command -v docker >/dev/null 2>&1; then
+    printf "Error: docker is not installed or not in PATH\n"; exit 1
+  fi
+
+  docker compose  -f "$PROJECT_DIR/dependencies/docker-compose.yml" run --entrypoint "" php-laravel sh -c "cd /workspace/project; composer setup"
+}
+
+containers() {
+  echo $(color "yellow" "Running containers...")
+
+  if ! command -v docker >/dev/null 2>&1; then
+    printf "Error: docker is not installed or not in PATH\n"; exit 1
+  fi
+
+  docker compose -f "$PROJECT_DIR/dependencies/docker-compose.yml" up -d --build --remove-orphans
+}
+
+shell() {
+  docker compose -f "$PROJECT_DIR/dependencies/docker-compose.yml" exec php-laravel bash
+}
+
+case "$1" in
+  ("") gen; run;;
+  (setup-dev) setup_dev;;
+  (gen) gen;;
+  (containers) containers;;
+  (shell) shell;;
+  (*) help;;
+esac
+
+exit 0
