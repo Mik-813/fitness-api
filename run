@@ -3,12 +3,12 @@
 PROJECT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 help() {
-  printf "(no args) - deploy\n"
+  printf "(no args)\t- deploy\n"
   printf "setup-dev\t- setup development environment\n"
-  printf "gen\t- generate project-specific dependencies\n"
+  printf "gen\t\t- generate project-specific dependencies\n"
   printf "containers\t- run containers\n"
-  printf "shell\t- run container's shell\n"
-  printf "help\t- show this message\n"
+  printf "shell\t\t- run container's shell\n"
+  printf "help\t\t- show this message\n"
 }
 
 color() {
@@ -116,7 +116,7 @@ shell() {
 }
 
 case "$1" in
-  ("") gen; run;;
+  ("") gen; containers;;
   (setup-dev) setup_dev;;
   (gen) gen;;
   (containers) containers;;
