@@ -112,7 +112,7 @@ containers() {
 }
 
 shell() {
-  docker compose -f "$PROJECT_DIR/dependencies/docker-compose.yml" exec php-laravel bash
+  docker compose -f "$PROJECT_DIR/dependencies/docker-compose.yml" exec php-laravel sh -c "cd /workspace/project && exec bash"
 }
 
 case "$1" in
