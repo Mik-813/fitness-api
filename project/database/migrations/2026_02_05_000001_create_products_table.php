@@ -12,12 +12,12 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->string('title');
-            $table->decimal('kcal_100g', 8, 2)->default(0);
-            $table->decimal('carbs_100g', 8, 2)->default(0);
-            $table->decimal('protein_100g', 8, 2)->default(0);
-            $table->decimal('fat_100g', 8, 2)->default(0);
-            $table->decimal('sugar_100g', 8, 2)->default(0);
-            $table->decimal('fiber_100g', 8, 2)->default(0);
+            $table->decimal('kcal_100g', 8, 2)->nullable();
+            $table->decimal('carbs_100g', 8, 2)->nullable();
+            $table->decimal('protein_100g', 8, 2)->nullable();
+            $table->decimal('fat_100g', 8, 2)->nullable();
+            $table->decimal('sugar_100g', 8, 2)->nullable();
+            $table->decimal('fiber_100g', 8, 2)->nullable();
             $table->timestamps();
         });
     }
