@@ -8,6 +8,8 @@ use App\Models\Consumable;
 use App\Models\Date;
 use App\Models\Product;
 use App\Models\WeightedProduct;
+use App\Models\Exercise;
+use App\Models\Set;
 
 class UserSeeder extends Seeder
 {
@@ -67,6 +69,27 @@ class UserSeeder extends Seeder
         'weighted_product_id' => $weightedProduct->id,
         'record_date' => $date->record_date,
         'consumption_g' => 150,
+      ]);
+
+      $exercise = Exercise::create([
+        'record_date' => $date->record_date,
+        'title' => 'Bench Press',
+        'muscle' => 'Chest',
+        'secondary_muscle' => 'Triceps',
+        'bodypart' => 'Upper Body',
+        'equipment' => 'Barbell',
+      ]);
+
+      Set::create([
+        'exercise_id' => $exercise->id,
+        'prior_rest_seconds' => 0,
+        'reps_number' => 12,
+      ]);
+
+      Set::create([
+        'exercise_id' => $exercise->id,
+        'prior_rest_seconds' => 90,
+        'reps_number' => 10,
       ]);
     }
   }
