@@ -13,6 +13,7 @@ return new class extends Migration
             $table->foreignId('exercise_id')->constrained()->cascadeOnDelete();
             $table->integer('prior_rest_seconds')->comment('Duration in seconds');
             $table->integer('reps_number');
+            $table->decimal('weight_kg', 8, 2)->nullable();
             $table->timestamps();
         });
     }

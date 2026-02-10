@@ -13,6 +13,7 @@ class Set extends Model
         'exercise_id',
         'prior_rest_seconds',
         'reps_number',
+        'weight_kg',
     ];
 
     public function exercise()

@@ -10,16 +10,14 @@ return new class extends Migration
     {
         Schema::create('exercises', function (Blueprint $table) {
             $table->id();
-            $table->date('record_date');
+            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->date('record_date')->index();
             $table->string('title');
             $table->string('muscle');
             $table->string('secondary_muscle')->nullable();
             $table->string('bodypart');
             $table->string('equipment');
             $table->timestamps();
-
-            // Assuming 'dates' table exists and 'record_date' is indexed or unique there
-            $table->foreign('record_date')->references('record_date')->on('dates')->cascadeOnDelete();
         });
     }
 

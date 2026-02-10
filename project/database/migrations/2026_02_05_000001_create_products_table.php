@@ -19,6 +19,7 @@ return new class extends Migration
             $table->decimal('sugar_100g', 8, 2)->nullable();
             $table->decimal('fiber_100g', 8, 2)->nullable();
             $table->timestamps();
+            $table->unique(['user_id', 'title']);
         });
     }
 

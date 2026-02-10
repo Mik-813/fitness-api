@@ -11,10 +11,10 @@ return new class extends Migration
         Schema::create('consumables', function (Blueprint $table) {
             $table->id();
             $table->foreignId('weighted_product_id')->constrained('weighted_products')->cascadeOnDelete();
-            $table->date('record_date');
-            $table->foreign('record_date')->references('record_date')->on('dates')->cascadeOnDelete();
+            $table->date('record_date')->index();
             $table->integer('consumption_g');
             $table->timestamps();
+            $table->unique(['weighted_product_id', 'record_date']);
         });
     }
 

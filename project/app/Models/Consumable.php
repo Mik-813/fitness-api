@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -14,16 +15,11 @@ class Consumable extends Model
     ];
 
     protected $casts = [
-        'record_date' => 'date',
+        'record_date' => 'date:Y-m-d',
     ];
 
     public function weightedProduct(): BelongsTo
     {
         return $this->belongsTo(WeightedProduct::class);
-    }
-
-    public function date(): BelongsTo
-    {
-        return $this->belongsTo(Date::class, 'record_date', 'record_date');
     }
 }

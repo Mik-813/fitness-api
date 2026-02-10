@@ -5,7 +5,6 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use App\Models\User;
 use App\Models\Consumable;
-use App\Models\Date;
 use App\Models\Product;
 use App\Models\WeightedProduct;
 use App\Models\Exercise;
@@ -15,10 +14,14 @@ class UserSeeder extends Seeder
 {
   public function run(): void
   {
-    $user = User::factory()->create([
-      'email' => 'test@example.com',
-      'password' => 'password',
-    ]);
+    $user = User::where('email', 'test@example.com')->first();
+
+    if (!$user) {
+      $user = User::factory()->create([
+        'email' => 'test@example.com',
+        'password' => 'password',
+      ]);
+    }
 
     $products = [
       [
@@ -51,28 +54,27 @@ class UserSeeder extends Seeder
     ];
 
     foreach ($products as $index => $data) {
-      $product = Product::create(array_merge($data, ['user_id' => $user->id]));
+      $product = Product::firstOrCreate(
+        ['title' => $data['title'], 'user_id' => $user->id],
+        $data
+      );
 
-      $weightedProduct = WeightedProduct::create([
+      $weightedProduct = WeightedProduct::firstOrCreate([
         'product_id' => $product->id,
         'weight_g' => 100,
       ]);
 
       $record_date = now()->subDays($index)->format('Y-m-d');
 
-      $date = Date::firstOrCreate(
-        ['record_date' => $record_date],
-        ['user_id' => $user->id]
-      );
-
       Consumable::create([
         'weighted_product_id' => $weightedProduct->id,
-        'record_date' => $date->record_date,
+        'record_date' => $record_date,
         'consumption_g' => 150,
       ]);
 
       $exercise = Exercise::create([
-        'record_date' => $date->record_date,
+        'user_id' => $user->id,
+        'record_date' => $record_date,
         'title' => 'Bench Press',
         'muscle' => 'Chest',
         'secondary_muscle' => 'Triceps',
@@ -84,12 +86,14 @@ class UserSeeder extends Seeder
         'exercise_id' => $exercise->id,
         'prior_rest_seconds' => 0,
         'reps_number' => 12,
+        'weight_kg' => 50,
       ]);
 
       Set::create([
         'exercise_id' => $exercise->id,
         'prior_rest_seconds' => 90,
         'reps_number' => 10,
+        'weight_kg' => 55,
       ]);
     }
   }

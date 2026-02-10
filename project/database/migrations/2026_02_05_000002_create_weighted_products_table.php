@@ -13,6 +13,7 @@ return new class extends Migration
             $table->integer('weight_g');
             $table->foreignId('product_id')->constrained()->cascadeOnDelete();
             $table->timestamps();
+            $table->unique(['product_id', 'weight_g']);
         });
     }
 
