@@ -25,7 +25,7 @@ class ExerciseController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'date' => 'required',
+            'record_date' => 'required',
             'title' => 'required|string|max:255',
             'muscle' => 'required|string|max:255',
             'secondary_muscle' => 'nullable|string|max:255',
@@ -38,7 +38,7 @@ class ExerciseController extends Controller
         ]);
 
         return DB::transaction(function () use ($request, $validated) {
-            $recordDate = Carbon::parse($validated['date'])->format('Y-m-d');
+            $recordDate = Carbon::parse($validated['record_date'])->format('Y-m-d');
             
             $exercise = Exercise::create([
                 'user_id' => $request->user()->id,
