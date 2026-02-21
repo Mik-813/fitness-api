@@ -9,27 +9,33 @@ use App\Models\WeightedProduct;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class ConsumableController extends Controller
 {
     public function index(Request $request)
     {
-        $date = $request->input('record_date', now()->format('Y-m-d'));
-        
-        $consumables = Consumable::where('record_date', $date)
-            ->whereHas('weightedProduct.product', fn($q) => $q->where('user_id', $request->user()->id))
-            ->with(['weightedProduct.product'])
-            ->get();
+        $query = Consumable::whereHas('weightedProduct.product', fn($q) => $q->where('user_id', $request->user()->id))
+            ->with(['weightedProduct.product']);
 
-        return ConsumableResource::collection($consumables);
+        $date = $request->input('record_date');
+
+        if ($date) {
+            if ($date === 'today') {
+                $date = now()->format('Y-m-d');
+            }
+            $query->where('record_date', $date);
+        }
+
+        return ConsumableResource::collection($query->get());
     }
 
     public function store(Request $request)
     {
         $validated = $request->validate([
             'record_date' => 'required|date',
-            'consumption_g' => 'required|integer|min:1',
             'weight_g' => 'required|integer|min:1',
+            'consumption_g' => 'required|integer|min:1|lte:weight_g',
             'title' => 'required|string|max:255',
             'kcal_100g' => 'nullable|numeric|min:0',
             'carbs_100g' => 'nullable|numeric|min:0',
@@ -95,6 +101,13 @@ class ConsumableController extends Controller
             'fiber_100g' => 'nullable|numeric|min:0',
             'force_recreate' => 'sometimes|boolean',
         ]);
+
+        $targetWeight = $validated['weight_g'] ?? $consumable->weightedProduct->weight_g;
+        $targetConsumption = $validated['consumption_g'] ?? $consumable->consumption_g;
+
+        if ($targetConsumption > $targetWeight) {
+            throw ValidationException::withMessages(['consumption_g' => 'The consumption_g cannot be higher than weight_g.']);
+        }
 
         return DB::transaction(function () use ($request, $consumable, $validated) {
             $user = $request->user();

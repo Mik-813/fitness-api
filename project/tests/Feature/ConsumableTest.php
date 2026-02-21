@@ -122,6 +122,7 @@ class ConsumableTest extends TestCase
 
         $response = $this->putJson("/api/consumables/{$consumable->id}", [
             'consumption_g' => 200,
+            'weight_g' => 200,
             'record_date' => '2023-01-04',
         ]);
 
@@ -130,6 +131,7 @@ class ConsumableTest extends TestCase
         $this->assertDatabaseHas('consumables', [
             'id' => $consumable->id,
             'consumption_g' => 200,
+            'weighted_product_id' => WeightedProduct::where('weight_g', 200)->first()->id,
             'record_date' => '2023-01-04',
         ]);
     }
@@ -286,5 +288,21 @@ class ConsumableTest extends TestCase
 
         $response->assertStatus(422)
             ->assertJson(['message' => 'Consumable already exists for this date.']);
+    }
+
+    public function test_store_aborts_if_consumption_greater_than_weight(): void
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user);
+
+        $response = $this->postJson('/api/consumables', [
+            'title' => 'Banana',
+            'weight_g' => 100,
+            'consumption_g' => 101,
+            'record_date' => '2023-01-02',
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['consumption_g']);
     }
 }

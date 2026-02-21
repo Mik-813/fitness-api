@@ -61,7 +61,7 @@ class UserSeeder extends Seeder
 
       $weightedProduct = WeightedProduct::firstOrCreate([
         'product_id' => $product->id,
-        'weight_g' => 100,
+        'weight_g' => 150,
       ]);
 
       $record_date = now()->subDays($index)->format('Y-m-d');
@@ -69,7 +69,7 @@ class UserSeeder extends Seeder
       Consumable::create([
         'weighted_product_id' => $weightedProduct->id,
         'record_date' => $record_date,
-        'consumption_g' => 150,
+        'consumption_g' => 100,
       ]);
 
       $exercise = Exercise::create([

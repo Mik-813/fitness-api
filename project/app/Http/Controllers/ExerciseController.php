@@ -12,14 +12,19 @@ class ExerciseController extends Controller
 {
     public function index(Request $request)
     {
-        $date = $request->input('date', now()->format('Y-m-d'));
+        $query = Exercise::where('user_id', $request->user()->id)
+            ->with('sets');
 
-        $exercises = Exercise::where('record_date', $date)
-            ->where('user_id', $request->user()->id)
-            ->with('sets')
-            ->get();
+        $date = $request->input('date');
 
-        return ExerciseResource::collection($exercises);
+        if ($date) {
+            if ($date === 'today') {
+                $date = now()->format('Y-m-d');
+            }
+            $query->where('record_date', $date);
+        }
+
+        return ExerciseResource::collection($query->get());
     }
 
     public function store(Request $request)
