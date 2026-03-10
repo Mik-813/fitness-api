@@ -8,6 +8,7 @@ use App\Http\Controllers\WeightedProductController;
 use App\Http\Controllers\ConsumableController;
 use App\Http\Controllers\ExerciseController;
 use App\Http\Controllers\DateController;
+use App\Http\Controllers\SettingController;
 
 Route::prefix('auth')->group(function () {
     Route::post('/register', [AuthController::class, 'register']);
@@ -36,6 +37,9 @@ Route::middleware('auth:sanctum')->group(function () {
     
     Route::get('/dates', [DateController::class, 'index']);
     Route::delete('/dates', [DateController::class, 'destroy']);
+
+    Route::get('/settings', [SettingController::class, 'index']);
+    Route::put('/settings', [SettingController::class, 'update']);
 });
 
 Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {

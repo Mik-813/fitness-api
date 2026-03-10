@@ -17,6 +17,7 @@ class ExerciseResource extends JsonResource
             'secondary_muscle' => $this->secondary_muscle,
             'bodypart' => $this->bodypart,
             'equipment' => $this->equipment,
+            'image_url' => $this->image_url,
             'sets' => SetResource::collection($this->whenLoaded('sets')),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,

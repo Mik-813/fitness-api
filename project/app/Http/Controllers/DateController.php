@@ -57,23 +57,25 @@ class DateController extends Controller
 
     public function destroy(Request $request)
     {
-        $month = $request->input('month', now()->format('Y-m'));
+        $validated = $request->validate([
+            'record_date' => 'required|date_format:Y-m-d',
+        ]);
+
+        $date = $validated['record_date'];
         $filter = $request->input('filter', 'all');
         $userId = $request->user()->id;
 
         if ($filter === 'all' || $filter === 'consumables') {
-            Consumable::query()
-                ->whereHas('weightedProduct.product', function ($q) use ($userId) {
+            Consumable::whereHas('weightedProduct.product', function ($q) use ($userId) {
                     $q->where('user_id', $userId);
                 })
-                ->where('record_date', 'like', "$month%")
+                ->where('record_date', $date)
                 ->delete();
         }
 
         if ($filter === 'all' || $filter === 'exercises') {
-            Exercise::query()
-                ->where('user_id', $userId)
-                ->where('record_date', 'like', "$month%")
+            Exercise::where('user_id', $userId)
+                ->where('record_date', $date)
                 ->delete();
         }
 

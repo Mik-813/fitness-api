@@ -80,6 +80,7 @@ class UserSeeder extends Seeder
         'secondary_muscle' => 'Triceps',
         'bodypart' => 'Upper Body',
         'equipment' => 'Barbell',
+        'image_url' => 'https://picsum.photos/200',
       ]);
 
       Set::create([

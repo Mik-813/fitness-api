@@ -36,6 +36,7 @@ class ExerciseController extends Controller
             'secondary_muscle' => 'nullable|string|max:255',
             'bodypart' => 'required|string|max:255',
             'equipment' => 'required|string|max:255',
+            'image_url' => 'nullable|string|url|max:255',
             'sets' => 'nullable|array',
             'sets.*.prior_rest_seconds' => 'required|integer|min:0',
             'sets.*.reps_number' => 'required|integer|min:1',
@@ -53,6 +54,7 @@ class ExerciseController extends Controller
                 'secondary_muscle' => $validated['secondary_muscle'] ?? null,
                 'bodypart' => $validated['bodypart'],
                 'equipment' => $validated['equipment'],
+                'image_url' => $validated['image_url'] ?? null,
             ]);
 
             if (!empty($validated['sets'])) {
@@ -72,6 +74,7 @@ class ExerciseController extends Controller
             'secondary_muscle' => 'nullable|string|max:255',
             'bodypart' => 'sometimes|string|max:255',
             'equipment' => 'sometimes|string|max:255',
+            'image_url' => 'nullable|string|url|max:255',
             'sets' => 'nullable|array',
             'sets.*.id' => 'sometimes|exists:sets,id',
             'sets.*.prior_rest_seconds' => 'required_with:sets|integer|min:0',

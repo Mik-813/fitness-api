@@ -12,6 +12,15 @@ class WeightedProduct extends Model
         'product_id',
     ];
 
+    protected static function booted(): void
+    {
+        static::deleted(function (WeightedProduct $weightedProduct) {
+            if ($weightedProduct->product && $weightedProduct->product->weightedProducts()->doesntExist()) {
+                $weightedProduct->product->delete();
+            }
+        });
+    }
+
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);

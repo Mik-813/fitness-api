@@ -17,6 +17,10 @@ class ConsumableResource extends JsonResource
                 'consumption_g' => $this->consumption_g,
                 'created_at' => $this->created_at,
                 'updated_at' => $this->updated_at,
+                'weights_g' => $this->when(
+                    $this->weightedProduct->product->relationLoaded('weightedProducts'),
+                    fn() => $this->weightedProduct->product->weightedProducts->pluck('weight_g')
+                ),
             ]
         );
     }

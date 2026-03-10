@@ -18,7 +18,8 @@ class Exercise extends Model
         'muscle',
         'secondary_muscle',
         'bodypart',
-        'equipment'
+        'equipment',
+        'image_url',
     ];
 
     protected $casts = [

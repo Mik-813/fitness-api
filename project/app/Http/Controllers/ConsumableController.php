@@ -16,7 +16,7 @@ class ConsumableController extends Controller
     public function index(Request $request)
     {
         $query = Consumable::whereHas('weightedProduct.product', fn($q) => $q->where('user_id', $request->user()->id))
-            ->with(['weightedProduct.product']);
+            ->with(['weightedProduct.product.weightedProducts']);
 
         $date = $request->input('record_date');
 
@@ -34,8 +34,7 @@ class ConsumableController extends Controller
     {
         $validated = $request->validate([
             'record_date' => 'required|date',
-            'weight_g' => 'required|integer|min:1',
-            'consumption_g' => 'required|integer|min:1|lte:weight_g',
+            'weight_g' => 'sometimes|integer|min:1',
             'title' => 'required|string|max:255',
             'kcal_100g' => 'nullable|numeric|min:0',
             'carbs_100g' => 'nullable|numeric|min:0',
@@ -58,10 +57,21 @@ class ConsumableController extends Controller
                 $productData
             );
 
-            $weightedProduct = WeightedProduct::firstOrCreate([
-                'product_id' => $product->id,
-                'weight_g' => $validated['weight_g']
-            ]);
+            if (isset($validated['weight_g'])) {
+                $weightedProduct = WeightedProduct::firstOrCreate([
+                    'product_id' => $product->id,
+                    'weight_g' => $validated['weight_g']
+                ]);
+            } else {
+                $weightedProduct = $product->weightedProducts()->first();
+
+                if (! $weightedProduct) {
+                    $weightedProduct = WeightedProduct::create([
+                        'product_id' => $product->id,
+                        'weight_g' => 100,
+                    ]);
+                }
+            }
 
             $exists = Consumable::where('weighted_product_id', $weightedProduct->id)
                 ->where('record_date', $recordDate)
@@ -74,7 +84,7 @@ class ConsumableController extends Controller
             $consumable = Consumable::create([
                 'weighted_product_id' => $weightedProduct->id,
                 'record_date' => $recordDate,
-                'consumption_g' => $validated['consumption_g'],
+                'consumption_g' => 0,
             ]);
 
             return new ConsumableResource($consumable->load('weightedProduct.product'));
@@ -83,14 +93,14 @@ class ConsumableController extends Controller
 
     public function show(Consumable $consumable)
     {
-        return new ConsumableResource($consumable->load('weightedProduct.product'));
+        return new ConsumableResource($consumable->load('weightedProduct.product.weightedProducts'));
     }
 
     public function update(Request $request, Consumable $consumable)
     {
         $validated = $request->validate([
             'record_date' => 'sometimes|date',
-            'consumption_g' => 'sometimes|integer|min:1',
+            'consumption_g' => 'sometimes|integer|min:0',
             'weight_g' => 'sometimes|integer|min:1',
             'title' => 'sometimes|string|max:255',
             'kcal_100g' => 'nullable|numeric|min:0',
@@ -99,7 +109,9 @@ class ConsumableController extends Controller
             'fat_100g' => 'nullable|numeric|min:0',
             'sugar_100g' => 'nullable|numeric|min:0',
             'fiber_100g' => 'nullable|numeric|min:0',
-            'force_recreate' => 'sometimes|boolean',
+            'override' => 'sometimes|boolean',
+            'weights_g' => 'sometimes|array',
+            'weights_g.*' => 'integer|min:1',
         ]);
 
         $targetWeight = $validated['weight_g'] ?? $consumable->weightedProduct->weight_g;
@@ -130,10 +142,13 @@ class ConsumableController extends Controller
                     ->first();
 
                 if ($existingProduct) {
-                    if (empty($validated['force_recreate'])) {
+                    if (empty($validated['override'])) {
                         return response()->json([
                             'message' => "The product with the title \"{$validated['title']}\" already exists",
-                            'needs_recreate' => true
+                            'errors' => [
+                                'needs_recreate' => true,
+                                'title' => "The product title conflicts with already existing product \"{$validated['title']}\"."
+                            ]
                         ], 422);
                     }
 
@@ -163,6 +178,15 @@ class ConsumableController extends Controller
                     $consumable->weighted_product_id = $newWeightedProduct->id;
                     $consumable->save();
 
+                    if (isset($validated['weights_g'])) {
+                        foreach ($validated['weights_g'] as $weight) {
+                            WeightedProduct::firstOrCreate([
+                                'product_id' => $existingProduct->id,
+                                'weight_g' => $weight,
+                            ]);
+                        }
+                    }
+
                     return new ConsumableResource($consumable->load('weightedProduct.product'));
                 }
             }
@@ -178,8 +202,13 @@ class ConsumableController extends Controller
                 $product->update($productData);
             }
 
-            if (isset($validated['weight_g'])) {
-                $weightedProduct->update(['weight_g' => $validated['weight_g']]);
+            if (isset($validated['weight_g']) && $validated['weight_g'] !== $weightedProduct->weight_g) {
+                $newWeightedProduct = WeightedProduct::firstOrCreate([
+                    'product_id' => $product->id,
+                    'weight_g' => $validated['weight_g'],
+                ]);
+
+                $consumable->weighted_product_id = $newWeightedProduct->id;
             }
 
             $exists = Consumable::where('weighted_product_id', $consumable->weighted_product_id)
@@ -192,6 +221,15 @@ class ConsumableController extends Controller
             }
 
             $consumable->save();
+
+            if (isset($validated['weights_g'])) {
+                foreach ($validated['weights_g'] as $weight) {
+                    WeightedProduct::firstOrCreate([
+                        'product_id' => $product->id,
+                        'weight_g' => $weight,
+                    ]);
+                }
+            }
 
             return new ConsumableResource($consumable->load('weightedProduct.product'));
         });

@@ -173,15 +173,13 @@ class ConsumableTest extends TestCase
             'kcal_100g' => 150,
         ]);
 
-        // Check WeightedProduct was updated in place
-        $this->assertDatabaseHas('weighted_products', [
-            'id' => $weightedProduct->id,
-            'product_id' => $product->id,
-            'weight_g' => 200,
-        ]);
+        // Check Consumable was updated to point to the new weight
+        $consumable->refresh();
+        $this->assertEquals(200, $consumable->weightedProduct->weight_g);
+        $this->assertEquals($product->id, $consumable->weightedProduct->product_id);
     }
 
-    public function test_update_returns_error_if_product_title_exists_and_no_force_recreate(): void
+    public function test_update_returns_error_if_product_title_exists_and_no_override(): void
     {
         $user = User::factory()->create();
         $this->actingAs($user);
@@ -219,7 +217,7 @@ class ConsumableTest extends TestCase
             ]);
     }
 
-    public function test_update_rewires_consumable_if_product_title_exists_and_force_recreate_is_true(): void
+    public function test_update_rewires_consumable_if_product_title_exists_and_override_is_true(): void
     {
         $user = User::factory()->create();
         $this->actingAs($user);
@@ -245,10 +243,10 @@ class ConsumableTest extends TestCase
             'kcal_100g' => 200,
         ]);
 
-        // Rename A to B with force_recreate
+        // Rename A to B with override
         $response = $this->putJson("/api/consumables/{$consumable->id}", [
             'title' => 'Product B',
-            'force_recreate' => true,
+            'override' => true,
             'weight_g' => 150, // New weight
         ]);
 
@@ -262,7 +260,7 @@ class ConsumableTest extends TestCase
         $this->assertDatabaseHas('products', ['id' => $productA->id, 'title' => 'Product A']);
     }
 
-    public function test_update_aborts_if_consumable_already_exists_with_force_recreate(): void
+    public function test_update_aborts_if_consumable_already_exists_with_override(): void
     {
         $user = User::factory()->create();
         $this->actingAs($user);
@@ -283,7 +281,7 @@ class ConsumableTest extends TestCase
         $response = $this->putJson("/api/consumables/{$consumableB->id}", [
             'title' => 'Apple',
             'weight_g' => 100,
-            'force_recreate' => true,
+            'override' => true,
         ]);
 
         $response->assertStatus(422)

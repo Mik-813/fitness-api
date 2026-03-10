@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('secondary_muscle')->nullable();
             $table->string('bodypart');
             $table->string('equipment');
+            $table->string('image_url')->nullable();
             $table->timestamps();
         });
     }
