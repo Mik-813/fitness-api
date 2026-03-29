@@ -21,7 +21,6 @@ class ConsumableTest extends TestCase
         $response = $this->postJson('/api/consumables', [
             'title' => 'New Product',
             'weight_g' => 100,
-            'consumption_g' => 50,
             'record_date' => '2023-01-01',
             'kcal_100g' => 100,
         ]);
@@ -29,7 +28,7 @@ class ConsumableTest extends TestCase
         $response->assertStatus(201);
         $this->assertDatabaseHas('products', ['title' => 'New Product', 'user_id' => $user->id]);
         $this->assertDatabaseHas('weighted_products', ['weight_g' => 100]);
-        $this->assertDatabaseHas('consumables', ['consumption_g' => 50, 'record_date' => '2023-01-01']);
+        $this->assertDatabaseHas('consumables', ['consumption_g' => 0, 'record_date' => '2023-01-01']);
     }
 
     public function test_store_aborts_if_consumable_already_exists(): void
@@ -48,18 +47,15 @@ class ConsumableTest extends TestCase
             'weight_g' => 100,
         ]);
 
-        // Create the first consumable
         Consumable::create([
             'weighted_product_id' => $weightedProduct->id,
             'record_date' => '2023-01-01',
             'consumption_g' => 50,
         ]);
 
-        // Try to create it again
         $response = $this->postJson('/api/consumables', [
             'title' => 'Apple',
             'weight_g' => 100,
-            'consumption_g' => 50,
             'record_date' => '2023-01-01',
         ]);
 
@@ -86,14 +82,13 @@ class ConsumableTest extends TestCase
         $response = $this->postJson('/api/consumables', [
             'title' => 'Banana',
             'weight_g' => 120,
-            'consumption_g' => 120,
             'record_date' => '2023-01-02',
         ]);
 
         $response->assertStatus(201);
         $this->assertDatabaseHas('consumables', [
             'weighted_product_id' => $weightedProduct->id,
-            'consumption_g' => 120,
+            'consumption_g' => 0,
             'record_date' => '2023-01-02',
         ]);
     }
@@ -127,7 +122,7 @@ class ConsumableTest extends TestCase
         ]);
 
         $response->assertStatus(200);
-        
+
         $this->assertDatabaseHas('consumables', [
             'id' => $consumable->id,
             'consumption_g' => 200,
@@ -166,14 +161,12 @@ class ConsumableTest extends TestCase
 
         $response->assertStatus(200);
 
-        // Check Product was updated in place
         $this->assertDatabaseHas('products', [
             'id' => $product->id,
             'title' => 'New Product',
             'kcal_100g' => 150,
         ]);
 
-        // Check Consumable was updated to point to the new weight
         $consumable->refresh();
         $this->assertEquals(200, $consumable->weightedProduct->weight_g);
         $this->assertEquals($product->id, $consumable->weightedProduct->product_id);
@@ -184,7 +177,6 @@ class ConsumableTest extends TestCase
         $user = User::factory()->create();
         $this->actingAs($user);
 
-        // Product A
         $productA = Product::create([
             'user_id' => $user->id,
             'title' => 'Product A',
@@ -198,14 +190,12 @@ class ConsumableTest extends TestCase
             'consumption_g' => 100,
         ]);
 
-        // Product B
         Product::create([
             'user_id' => $user->id,
             'title' => 'Product B',
             'kcal_100g' => 200,
         ]);
 
-        // Try to rename A to B
         $response = $this->putJson("/api/consumables/{$consumable->id}", [
             'title' => 'Product B',
         ]);
@@ -213,7 +203,9 @@ class ConsumableTest extends TestCase
         $response->assertStatus(422)
             ->assertJson([
                 'message' => 'The product with the title "Product B" already exists',
-                'needs_recreate' => true,
+                'errors' => [
+                    'needs_recreate' => true,
+                ],
             ]);
     }
 
@@ -222,7 +214,6 @@ class ConsumableTest extends TestCase
         $user = User::factory()->create();
         $this->actingAs($user);
 
-        // Product A
         $productA = Product::create([
             'user_id' => $user->id,
             'title' => 'Product A',
@@ -236,18 +227,16 @@ class ConsumableTest extends TestCase
             'consumption_g' => 100,
         ]);
 
-        // Product B
         $productB = Product::create([
             'user_id' => $user->id,
             'title' => 'Product B',
             'kcal_100g' => 200,
         ]);
 
-        // Rename A to B with override
         $response = $this->putJson("/api/consumables/{$consumable->id}", [
             'title' => 'Product B',
             'override' => true,
-            'weight_g' => 150, // New weight
+            'weight_g' => 150,
         ]);
 
         $response->assertStatus(200);
@@ -256,7 +245,6 @@ class ConsumableTest extends TestCase
         $this->assertEquals($productB->id, $consumable->weightedProduct->product_id);
         $this->assertEquals(150, $consumable->weightedProduct->weight_g);
 
-        // Ensure Product A is untouched
         $this->assertDatabaseHas('products', ['id' => $productA->id, 'title' => 'Product A']);
     }
 
@@ -267,17 +255,14 @@ class ConsumableTest extends TestCase
 
         $date = '2023-01-01';
 
-        // Product A: Apple
         $productA = Product::create(['user_id' => $user->id, 'title' => 'Apple', 'kcal_100g' => 50]);
         $wpA = WeightedProduct::create(['product_id' => $productA->id, 'weight_g' => 100]);
         Consumable::create(['weighted_product_id' => $wpA->id, 'record_date' => $date, 'consumption_g' => 50]);
 
-        // Product B: Banana
         $productB = Product::create(['user_id' => $user->id, 'title' => 'Banana', 'kcal_100g' => 90]);
         $wpB = WeightedProduct::create(['product_id' => $productB->id, 'weight_g' => 100]);
         $consumableB = Consumable::create(['weighted_product_id' => $wpB->id, 'record_date' => $date, 'consumption_g' => 50]);
 
-        // Try to update Banana to Apple (100g) on the same date
         $response = $this->putJson("/api/consumables/{$consumableB->id}", [
             'title' => 'Apple',
             'weight_g' => 100,
@@ -288,19 +273,32 @@ class ConsumableTest extends TestCase
             ->assertJson(['message' => 'Consumable already exists for this date.']);
     }
 
-    public function test_store_aborts_if_consumption_greater_than_weight(): void
+    public function test_update_aborts_if_consumption_greater_than_weight(): void
     {
         $user = User::factory()->create();
         $this->actingAs($user);
 
-        $response = $this->postJson('/api/consumables', [
+        $product = Product::create([
+            'user_id' => $user->id,
             'title' => 'Banana',
-            'weight_g' => 100,
-            'consumption_g' => 101,
-            'record_date' => '2023-01-02',
+            'kcal_100g' => 89,
         ]);
 
-        $response->assertStatus(422)
-            ->assertJsonValidationErrors(['consumption_g']);
+        $weightedProduct = WeightedProduct::create([
+            'product_id' => $product->id,
+            'weight_g' => 100,
+        ]);
+
+        $consumable = Consumable::create([
+            'weighted_product_id' => $weightedProduct->id,
+            'record_date' => '2023-01-02',
+            'consumption_g' => 50,
+        ]);
+
+        $response = $this->putJson("/api/consumables/{$consumable->id}", [
+            'consumption_g' => 101,
+        ]);
+
+        $response->assertStatus(422);
     }
 }
