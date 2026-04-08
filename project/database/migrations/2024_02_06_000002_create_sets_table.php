@@ -11,7 +11,8 @@ return new class extends Migration
         Schema::create('sets', function (Blueprint $table) {
             $table->id();
             $table->foreignId('exercise_id')->constrained()->cascadeOnDelete();
-            $table->integer('prior_rest_seconds')->comment('Duration in seconds');
+            $table->foreignId('prev_set_id')->nullable()->constrained('sets')->nullOnDelete();
+            $table->integer('rest_seconds')->comment('Duration in seconds');
             $table->integer('reps_number');
             $table->decimal('weight_kg', 8, 2)->nullable();
             $table->timestamps();

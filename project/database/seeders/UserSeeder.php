@@ -83,16 +83,17 @@ class UserSeeder extends Seeder
         'image_url' => 'https://picsum.photos/200',
       ]);
 
-      Set::create([
+      $set1 = Set::create([
         'exercise_id' => $exercise->id,
-        'prior_rest_seconds' => 0,
+        'rest_seconds' => 0,
         'reps_number' => 12,
         'weight_kg' => 50,
       ]);
 
       Set::create([
         'exercise_id' => $exercise->id,
-        'prior_rest_seconds' => 90,
+        'prev_set_id' => $set1->id,
+        'rest_seconds' => 90,
         'reps_number' => 10,
         'weight_kg' => 55,
       ]);

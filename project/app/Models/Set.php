@@ -11,7 +11,8 @@ class Set extends Model
 
     protected $fillable = [
         'exercise_id',
-        'prior_rest_seconds',
+        'prev_set_id',
+        'rest_seconds',
         'reps_number',
         'weight_kg',
     ];
@@ -19,5 +20,10 @@ class Set extends Model
     public function exercise()
     {
         return $this->belongsTo(Exercise::class);
+    }
+
+    public function prevSet()
+    {
+        return $this->belongsTo(Set::class, 'prev_set_id');
     }
 }

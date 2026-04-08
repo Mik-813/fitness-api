@@ -13,7 +13,7 @@ class ExerciseController extends Controller
     public function index(Request $request)
     {
         $query = Exercise::where('user_id', $request->user()->id)
-            ->with('sets');
+            ->with('sets.prevSet');
 
         $date = $request->input('date');
 
@@ -38,7 +38,7 @@ class ExerciseController extends Controller
             'equipment' => 'required|string|max:255',
             'image_url' => 'nullable|string|url|max:255',
             'sets' => 'nullable|array',
-            'sets.*.prior_rest_seconds' => 'required|integer|min:0',
+            'sets.*.rest_seconds' => 'required|integer|min:0',
             'sets.*.reps_number' => 'required|integer|min:1',
             'sets.*.weight_kg' => 'nullable|numeric|min:0',
         ]);
@@ -58,10 +58,15 @@ class ExerciseController extends Controller
             ]);
 
             if (!empty($validated['sets'])) {
-                $exercise->sets()->createMany($validated['sets']);
+                $prevSetId = null;
+                foreach ($validated['sets'] as $setData) {
+                    $setData['prev_set_id'] = $prevSetId;
+                    $set = $exercise->sets()->create($setData);
+                    $prevSetId = $set->id;
+                }
             }
 
-            return new ExerciseResource($exercise->load('sets'));
+            return new ExerciseResource($exercise->load('sets.prevSet'));
         });
     }
 
@@ -76,8 +81,8 @@ class ExerciseController extends Controller
             'equipment' => 'sometimes|string|max:255',
             'image_url' => 'nullable|string|url|max:255',
             'sets' => 'nullable|array',
-            'sets.*.id' => 'sometimes|exists:sets,id',
-            'sets.*.prior_rest_seconds' => 'required_with:sets|integer|min:0',
+            'sets.*.id' => 'sometimes|integer',
+            'sets.*.rest_seconds' => 'required_with:sets|integer|min:0',
             'sets.*.reps_number' => 'required_with:sets|integer|min:1',
             'sets.*.weight_kg' => 'nullable|numeric|min:0',
         ]);
@@ -91,14 +96,23 @@ class ExerciseController extends Controller
             $exercise->update($validated);
 
             if (isset($validated['sets'])) {
-                // Simple strategy: delete existing and recreate, or update if ID present
-                // For simplicity given the prompt, we'll just delete and recreate if sets are provided
-                // to ensure the array matches exactly what is sent.
-                $exercise->sets()->delete();
-                $exercise->sets()->createMany($validated['sets']);
+                $exercise->sets()->update(['prev_set_id' => null]);
+                $existingIds = collect($validated['sets'])->pluck('id')->filter();
+                $exercise->sets()->whereNotIn('id', $existingIds)->delete();
+                
+                $prevSetId = null;
+                foreach ($validated['sets'] as $setData) {
+                    $setData['prev_set_id'] = $prevSetId;
+                    if (isset($setData['id']) && ($set = $exercise->sets()->find($setData['id']))) {
+                        $set->update($setData);
+                    } else {
+                        $set = $exercise->sets()->create($setData);
+                    }
+                    $prevSetId = $set->id;
+                }
             }
 
-            return new ExerciseResource($exercise->load('sets'));
+            return new ExerciseResource($exercise->load('sets.prevSet'));
         });
     }
 

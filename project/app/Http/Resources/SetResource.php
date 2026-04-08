@@ -11,7 +11,9 @@ class SetResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'prior_rest_seconds' => $this->prior_rest_seconds,
+            'prev_set_id' => $this->prev_set_id,
+            'pre_rest_seconds' => $this->prevSet ? $this->prevSet->rest_seconds : 0,
+            'rest_seconds' => $this->rest_seconds,
             'reps_number' => $this->reps_number,
             'weight_kg' => $this->weight_kg,
         ];
