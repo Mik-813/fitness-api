@@ -25,6 +25,7 @@ class SettingController extends Controller
             'fiber_100g' => ['sometimes', 'boolean'],
             'currency_sign' => ['sometimes', 'nullable', 'string'],
             'language' => ['sometimes', Rule::in(['en', 'pl', 'ua'])],
+            'auto_timer' => ['sometimes', 'boolean'],
         ]);
 
         $setting = $request->user()->setting()->updateOrCreate([], $validated);

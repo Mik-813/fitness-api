@@ -20,6 +20,7 @@ return new class extends Migration
             $table->boolean('fiber_100g')->default(false);
             $table->string('currency_sign')->default('$');
             $table->enum('language', ['en', 'pl', 'ua'])->default('en');
+            $table->boolean('auto_timer')->default(false);
             $table->timestamps();
         });
     }

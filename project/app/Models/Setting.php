@@ -21,6 +21,7 @@ class Setting extends Model
         'fiber_100g',
         'currency_sign',
         'language',
+        'auto_timer',
     ];
 
     protected $casts = [
@@ -30,6 +31,7 @@ class Setting extends Model
         'fat_100g' => 'boolean',
         'sugar_100g' => 'boolean',
         'fiber_100g' => 'boolean',
+        'auto_timer' => 'boolean',
     ];
 
     public function user(): BelongsTo

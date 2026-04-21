@@ -19,6 +19,7 @@ class SettingResource extends JsonResource
             'fiber_100g' => $this->fiber_100g,
             'currency_sign' => $this->currency_sign,
             'language' => $this->language,
+            'auto_timer' => $this->auto_timer,
         ];
     }
 }

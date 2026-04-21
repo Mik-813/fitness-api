@@ -51,6 +51,7 @@ class User extends Authenticatable implements MustVerifyEmail
             'fiber_100g' => false,
             'currency_sign' => '$',
             'language' => 'en',
+            'auto_timer' => false,
         ]);
     }
 
