@@ -23,6 +23,18 @@ class UserSeeder extends Seeder
       ]);
     }
 
+    $token = $user->tokens()->firstOrCreate(
+      ['name' => 'dev-token'],
+      [
+        'token' => hash('sha256', 'hardcoded-token-secret'),
+        'abilities' => ['*'],
+      ]
+    );
+
+    if (isset($this->command)) {
+      $this->command->info("Test User Token: {$token->id}|hardcoded-token-secret");
+    }
+
     $products = [
       [
         'title' => 'Chicken Breast',
@@ -83,11 +95,19 @@ class UserSeeder extends Seeder
         'image_url' => 'https://picsum.photos/200',
       ]);
 
-      $set1 = Set::create([
+      $set2 = Set::create([
         'exercise_id' => $exercise->id,
         'rest_seconds' => 0,
-        'reps_number' => 12,
-        'weight_kg' => 50,
+        'reps_number' => 6,
+        'weight_kg' => 75,
+      ]);
+
+      $set1 = Set::create([
+        'exercise_id' => $exercise->id,
+        'prev_set_id' => $set2->id,
+        'rest_seconds' => 12,
+        'reps_number' => 14,
+        'weight_kg' => 30,
       ]);
 
       Set::create([

@@ -73,7 +73,7 @@ class ExerciseController extends Controller
     public function update(Request $request, Exercise $exercise)
     {
         $validated = $request->validate([
-            'date' => 'sometimes',
+            'record_date' => 'sometimes',
             'title' => 'sometimes|string|max:255',
             'muscle' => 'sometimes|string|max:255',
             'secondary_muscle' => 'nullable|string|max:255',
@@ -88,8 +88,8 @@ class ExerciseController extends Controller
         ]);
 
         return DB::transaction(function () use ($request, $exercise, $validated) {
-            if (isset($validated['date'])) {
-                $recordDate = Carbon::parse($validated['date'])->format('Y-m-d');
+            if (isset($validated['record_date'])) {
+                $recordDate = Carbon::parse($validated['record_date'])->format('Y-m-d');
                 $exercise->record_date = $recordDate;
             }
 

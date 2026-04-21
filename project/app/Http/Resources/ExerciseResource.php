@@ -29,7 +29,7 @@ class ExerciseResource extends JsonResource
 
         return [
             'id' => $this->id,
-            'date' => $this->record_date->format('Y-m-d'),
+            'record_date' => $this->record_date->format('Y-m-d'),
             'title' => $this->title,
             'muscle' => $this->muscle,
             'secondary_muscle' => $this->secondary_muscle,
