@@ -26,6 +26,7 @@ class SettingController extends Controller
             'currency_sign' => ['sometimes', 'nullable', 'string'],
             'language' => ['sometimes', Rule::in(['en', 'pl', 'ua'])],
             'auto_timer' => ['sometimes', 'boolean'],
+            'rest_limit' => ['sometimes', 'integer', 'min:0'],
         ]);
 
         $setting = $request->user()->setting()->updateOrCreate([], $validated);

@@ -83,7 +83,7 @@ class ExerciseController extends Controller
             'sets' => 'nullable|array',
             'sets.*.id' => 'sometimes|integer',
             'sets.*.rest_seconds' => 'required_with:sets|integer|min:0',
-            'sets.*.reps_number' => 'required_with:sets|integer|min:1',
+            'sets.*.reps_number' => 'required_with:sets|integer|min:0',
             'sets.*.weight_kg' => 'nullable|numeric|min:0',
         ]);
 

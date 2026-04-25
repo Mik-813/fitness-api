@@ -20,6 +20,7 @@ class SettingResource extends JsonResource
             'currency_sign' => $this->currency_sign,
             'language' => $this->language,
             'auto_timer' => $this->auto_timer,
+            'rest_limit' => $this->rest_limit,
         ];
     }
 }

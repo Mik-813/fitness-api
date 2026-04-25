@@ -52,6 +52,7 @@ class User extends Authenticatable implements MustVerifyEmail
             'currency_sign' => '$',
             'language' => 'en',
             'auto_timer' => false,
+            'rest_limit' => 0,
         ]);
     }
 

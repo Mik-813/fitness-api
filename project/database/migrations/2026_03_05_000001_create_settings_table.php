@@ -21,6 +21,7 @@ return new class extends Migration
             $table->string('currency_sign')->default('$');
             $table->enum('language', ['en', 'pl', 'ua'])->default('en');
             $table->boolean('auto_timer')->default(false);
+            $table->integer('rest_limit')->default(0);
             $table->timestamps();
         });
     }
