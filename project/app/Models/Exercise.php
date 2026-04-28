@@ -14,12 +14,7 @@ class Exercise extends Model
     protected $fillable = [
         'user_id',
         'record_date',
-        'title',
-        'muscle',
-        'secondary_muscle',
-        'bodypart',
-        'equipment',
-        'image_url',
+        'db_exercise_id',
     ];
 
     protected $casts = [

@@ -30,12 +30,8 @@ class ExerciseResource extends JsonResource
         return [
             'id' => $this->id,
             'record_date' => $this->record_date->format('Y-m-d'),
-            'title' => $this->title,
-            'muscle' => $this->muscle,
-            'secondary_muscle' => $this->secondary_muscle,
-            'bodypart' => $this->bodypart,
-            'equipment' => $this->equipment,
-            'image_url' => $this->image_url,
+            'db_exercise_id' => $this->db_exercise_id,
+            'exercise' => $this->when(isset($this->external_data), $this->external_data),
             'sets' => $this->whenLoaded('sets', function () use ($sortedSets) {
                 return SetResource::collection($sortedSets);
             }),

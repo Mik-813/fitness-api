@@ -17,10 +17,7 @@ class ExerciseControllerTest extends TestCase
 
         $response = $this->actingAs($user)->postJson('/api/exercises', [
             'record_date' => '2023-10-10',
-            'title' => 'Squat',
-            'muscle' => 'Quads',
-            'bodypart' => 'Legs',
-            'equipment' => 'Barbell',
+            'db_exercise_id' => 'ztAa1RK',
             'sets' => [
                 ['rest_seconds' => 60, 'reps_number' => 10, 'weight_kg' => 100],
                 ['rest_seconds' => 90, 'reps_number' => 8, 'weight_kg' => 110],
@@ -48,10 +45,7 @@ class ExerciseControllerTest extends TestCase
         $exercise = Exercise::create([
             'user_id' => $user->id,
             'record_date' => '2023-10-10',
-            'title' => 'Squat',
-            'muscle' => 'Quads',
-            'bodypart' => 'Legs',
-            'equipment' => 'Barbell',
+            'db_exercise_id' => 'ztAa1RK',
         ]);
 
         $set1 = $exercise->sets()->create(['rest_seconds' => 60, 'reps_number' => 10, 'weight_kg' => 100]);
@@ -88,10 +82,7 @@ class ExerciseControllerTest extends TestCase
         $exercise = Exercise::create([
             'user_id' => $user->id,
             'record_date' => '2023-10-10',
-            'title' => 'Squat',
-            'muscle' => 'Quads',
-            'bodypart' => 'Legs',
-            'equipment' => 'Barbell',
+            'db_exercise_id' => 'ztAa1RK',
         ]);
 
         $response = $this->actingAs($user)->putJson("/api/exercises/{$exercise->id}", [

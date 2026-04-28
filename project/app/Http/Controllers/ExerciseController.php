@@ -7,6 +7,7 @@ use App\Models\Exercise;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 
 class ExerciseController extends Controller
 {
@@ -24,19 +25,35 @@ class ExerciseController extends Controller
             $query->where('record_date', $date);
         }
 
-        return ExerciseResource::collection($query->get());
+        $exercises = $query->get();
+        $dbExerciseIds = $exercises->pluck('db_exercise_id')->unique()->filter()->join(',');
+
+        if ($dbExerciseIds) {
+            try {
+                $response = Http::get("http://localhost:8081/api/v1/exercises/by-ids", [
+                    'ids' => $dbExerciseIds
+                ]);
+
+                if ($response->successful() && $response->json('success')) {
+                    $externalExercises = collect($response->json('data'))->keyBy('exerciseId');
+
+                    $exercises->each(function ($exercise) use ($externalExercises) {
+                        $exercise->external_data = $externalExercises->get($exercise->db_exercise_id);
+                    });
+                }
+            } catch (\Exception $e) {
+                // Ignore exception and return local data only
+            }
+        }
+
+        return ExerciseResource::collection($exercises);
     }
 
     public function store(Request $request)
     {
         $validated = $request->validate([
             'record_date' => 'required',
-            'title' => 'required|string|max:255',
-            'muscle' => 'required|string|max:255',
-            'secondary_muscle' => 'nullable|string|max:255',
-            'bodypart' => 'required|string|max:255',
-            'equipment' => 'required|string|max:255',
-            'image_url' => 'nullable|string|url|max:255',
+            'db_exercise_id' => 'required|string|max:255',
             'sets' => 'nullable|array',
             'sets.*.rest_seconds' => 'required|integer|min:0',
             'sets.*.reps_number' => 'required|integer|min:1',
@@ -49,12 +66,7 @@ class ExerciseController extends Controller
             $exercise = Exercise::create([
                 'user_id' => $request->user()->id,
                 'record_date' => $recordDate,
-                'title' => $validated['title'],
-                'muscle' => $validated['muscle'],
-                'secondary_muscle' => $validated['secondary_muscle'] ?? null,
-                'bodypart' => $validated['bodypart'],
-                'equipment' => $validated['equipment'],
-                'image_url' => $validated['image_url'] ?? null,
+                'db_exercise_id' => $validated['db_exercise_id'],
             ]);
 
             if (!empty($validated['sets'])) {
@@ -74,12 +86,7 @@ class ExerciseController extends Controller
     {
         $validated = $request->validate([
             'record_date' => 'sometimes',
-            'title' => 'sometimes|string|max:255',
-            'muscle' => 'sometimes|string|max:255',
-            'secondary_muscle' => 'nullable|string|max:255',
-            'bodypart' => 'sometimes|string|max:255',
-            'equipment' => 'sometimes|string|max:255',
-            'image_url' => 'nullable|string|url|max:255',
+            'db_exercise_id' => 'sometimes|string|max:255',
             'sets' => 'nullable|array',
             'sets.*.id' => 'sometimes|integer',
             'sets.*.rest_seconds' => 'required_with:sets|integer|min:0',

@@ -12,12 +12,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->date('record_date')->index();
-            $table->string('title');
-            $table->string('muscle');
-            $table->string('secondary_muscle')->nullable();
-            $table->string('bodypart');
-            $table->string('equipment');
-            $table->string('image_url')->nullable();
+            $table->string('db_exercise_id');
             $table->timestamps();
         });
     }

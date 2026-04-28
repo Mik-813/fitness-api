@@ -87,12 +87,7 @@ class UserSeeder extends Seeder
       $exercise = Exercise::create([
         'user_id' => $user->id,
         'record_date' => $record_date,
-        'title' => 'Bench Press',
-        'muscle' => 'Chest',
-        'secondary_muscle' => 'Triceps',
-        'bodypart' => 'Upper Body',
-        'equipment' => 'Barbell',
-        'image_url' => 'https://picsum.photos/200',
+        'db_exercise_id' => 'ztAa1RK',
       ]);
 
       $set2 = Set::create([
