@@ -6,6 +6,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 use App\Models\User;
 use App\Models\Exercise;
+use Illuminate\Support\Facades\Http;
 
 class ExerciseControllerTest extends TestCase
 {
@@ -96,5 +97,52 @@ class ExerciseControllerTest extends TestCase
 
         $this->assertCount(1, $data['sets']);
         $this->assertNotEquals(99999, $data['sets'][0]['id']);
+    }
+
+    public function test_index_fetches_exercises_and_external_data()
+    {
+        $user = User::factory()->create();
+        
+        Exercise::create([
+            'user_id' => $user->id,
+            'record_date' => now()->format('Y-m-d'),
+            'db_exercise_id' => 'ztAa1RK',
+        ]);
+
+        Http::fake([
+            'localhost:8081/api/v1/exercises/by-ids*' => Http::response([
+                'success' => true,
+                'data' => [
+                    [
+                        'exerciseId' => 'ztAa1RK',
+                        'name' => 'Bench Press'
+                    ]
+                ]
+            ], 200),
+        ]);
+
+        $response = $this->actingAs($user)->getJson('/api/exercises?date=today');
+
+        $response->assertStatus(200);
+    }
+
+    public function test_index_returns_server_error_if_external_api_is_unreachable()
+    {
+        $user = User::factory()->create();
+        
+        Exercise::create([
+            'user_id' => $user->id,
+            'record_date' => now()->format('Y-m-d'),
+            'db_exercise_id' => 'ztAa1RK',
+        ]);
+
+        Http::fake(function () {
+            throw new \Illuminate\Http\Client\ConnectionException('Connection failed');
+        });
+
+        $response = $this->actingAs($user)->getJson('/api/exercises');
+
+        $response->assertStatus(500)
+                 ->assertJson(['message' => 'Server error']);
     }
 }

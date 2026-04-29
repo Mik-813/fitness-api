@@ -50,4 +50,28 @@ class WeightedProductTest extends TestCase
         $response = $this->postJson('/api/weighted-products', []);
         $response->assertStatus(405);
     }
+
+    public function test_show_returns_weighted_product(): void
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user);
+
+        $product = Product::create(['user_id' => $user->id, 'title' => 'Apple']);
+        $wp = WeightedProduct::create(['product_id' => $product->id, 'weight_g' => 100]);
+
+        $response = $this->getJson("/api/weighted-products/{$wp->id}");
+        $response->assertStatus(200);
+    }
+
+    public function test_destroy_deletes_weighted_product(): void
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user);
+
+        $product = Product::create(['user_id' => $user->id, 'title' => 'Apple']);
+        $wp = WeightedProduct::create(['product_id' => $product->id, 'weight_g' => 100]);
+
+        $response = $this->deleteJson("/api/weighted-products/{$wp->id}");
+        $response->assertStatus(204);
+    }
 }
