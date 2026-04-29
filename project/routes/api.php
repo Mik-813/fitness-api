@@ -9,6 +9,7 @@ use App\Http\Controllers\ConsumableController;
 use App\Http\Controllers\ExerciseController;
 use App\Http\Controllers\DateController;
 use App\Http\Controllers\SettingController;
+use App\Http\Controllers\ProductNutritionController;
 
 Route::prefix('auth')->group(function () {
     Route::post('/register', [AuthController::class, 'register']);
@@ -34,6 +35,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('weighted-products', WeightedProductController::class)->only(['index', 'show', 'destroy']);
     Route::apiResource('consumables', ConsumableController::class);
     Route::apiResource('exercises', ExerciseController::class);
+
+    Route::post('/products/generate-nutrition', [ProductNutritionController::class, 'generate']);
     
     Route::get('/dates', [DateController::class, 'index']);
     Route::delete('/dates', [DateController::class, 'destroy']);
