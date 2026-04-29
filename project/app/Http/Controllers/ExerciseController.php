@@ -42,7 +42,7 @@ class ExerciseController extends Controller
                     });
                 }
             } catch (\Exception $e) {
-                // Ignore exception and return local data only
+                return response()->json(['message' => 'Server error'], 500);
             }
         }
 
