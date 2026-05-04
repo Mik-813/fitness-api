@@ -40,4 +40,8 @@ return [
     'gemini' => [
         'key' => env('GEMINI_API_KEY'),
     ],
+
+    'exercise_api' => [
+        'url' => env('DB_EXERCISE_API_URL'),
+    ],
 ];

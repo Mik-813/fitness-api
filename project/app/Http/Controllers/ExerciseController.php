@@ -30,7 +30,9 @@ class ExerciseController extends Controller
 
         if ($dbExerciseIds) {
             try {
-                $response = Http::get("http://localhost:8081/api/v1/exercises/by-ids", [
+                $baseUrl = config('services.db_exercise_api.url');
+                
+                $response = Http::get("{$baseUrl}/api/v1/exercises/by-ids", [
                     'ids' => $dbExerciseIds
                 ]);
 
