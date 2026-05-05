@@ -110,7 +110,7 @@ class ExerciseControllerTest extends TestCase
         ]);
 
         Http::fake([
-            'localhost:8081/api/v1/exercises/by-ids*' => Http::response([
+            '*' => Http::response([
                 'success' => true,
                 'data' => [
                     [
