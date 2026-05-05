@@ -98,7 +98,7 @@ gen() {
     printf "Error: docker is not installed or not in PATH\n"; exit 1
   fi
 
-  docker compose  -f "$PROJECT_DIR/dependencies/docker-compose.yml" run --entrypoint "" php-laravel sh -c "cd /workspace/project; composer setup"
+  docker compose -f "$PROJECT_DIR/dependencies/docker-compose.yml" run --remove-orphans --entrypoint "" php-laravel sh -c "cd /workspace/project; composer setup"
 }
 
 containers() {
