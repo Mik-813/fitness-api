@@ -16,7 +16,7 @@ class ExerciseController extends Controller
         $query = Exercise::where('user_id', $request->user()->id)
             ->with('sets.prevSet');
 
-        $date = $request->input('date');
+        $date = $request->input('record_date', $request->input('date'));
 
         if ($date) {
             if ($date === 'today') {
@@ -42,9 +42,14 @@ class ExerciseController extends Controller
                     $exercises->each(function ($exercise) use ($externalExercises) {
                         $exercise->external_data = $externalExercises->get($exercise->db_exercise_id);
                     });
+                } else {
+                    return response()->json(
+                        $response->json() ?: ['message' => 'External API error'],
+                        $response->status() >= 400 ? $response->status() : 502
+                    );
                 }
             } catch (\Exception $e) {
-                return response()->json(['message' => 'Server error'], 500);
+                return response()->json(['message' => "Couldn't connect to external server"], 500);
             }
         }
 

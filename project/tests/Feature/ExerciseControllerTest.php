@@ -121,12 +121,12 @@ class ExerciseControllerTest extends TestCase
             ], 200),
         ]);
 
-        $response = $this->actingAs($user)->getJson('/api/exercises?date=today');
+        $response = $this->actingAs($user)->getJson('/api/exercises?record_date=today');
 
         $response->assertStatus(200);
     }
 
-    public function test_index_returns_server_error_if_external_api_is_unreachable()
+    public function test_index_returns_error_if_external_api_is_unreachable()
     {
         $user = User::factory()->create();
         
@@ -143,6 +143,6 @@ class ExerciseControllerTest extends TestCase
         $response = $this->actingAs($user)->getJson('/api/exercises');
 
         $response->assertStatus(500)
-                 ->assertJson(['message' => 'Server error']);
+                 ->assertJson(['message' => 'Connection failed']);
     }
 }
